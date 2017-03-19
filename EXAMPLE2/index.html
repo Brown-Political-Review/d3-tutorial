@@ -1,0 +1,106 @@
+<head>
+    <!-- Load D3 -->
+    <script src="http://d3js.org/d3.v3.min.js">
+    </script>
+    <style>
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+    </style>
+</head>
+
+<body>
+    <!-- Script to create a dot -->
+    <script>
+        //Create a margin system based on https://bl.ocks.org/mbostock/3019563
+        var margin = {
+            top: 20,
+            right: 10,
+            bottom: 45,
+            left: 40
+        };
+        var frameWidth = 960;
+            frameHeight = 500;
+        var width = frameWidth - margin.left - margin.right,
+            height = frameHeight - margin.top - margin.bottom;
+        var graph = d3.select("body").append("svg")
+            .attr("width", frameWidth)
+            .attr("height", frameHeight)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        //Create the x scale
+        var x = d3.scale.linear()
+            .range([0, width]);
+        //Create the y scale (flip the order because of how y coordinates work)
+        var y = d3.scale.linear()
+            .range([height, 0]);
+        //Create a scaling which takes in the value and returns the radius
+        var r = d3.scale.linear()
+            .range([.05, 30]);
+        //Set up the x axis
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+        //Set up the y axis
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+        //Read in the data and plot the points
+        d3.csv("data.csv", function(error, data) {
+            //Throw an error if the csv reading results in an error
+            if (error) throw error;
+            data.forEach(function(d) {
+              d['IA Diff'] = +d['IA Diff'];
+              d['NH Diff'] = +d['NH Diff'];
+              d['IA Result'] = +d['IA Result'];
+            })
+            //Set the x, y, and r domain based on the data
+            x.domain(d3.extent(data, function(d) {
+                return d['IA Diff']
+            })).nice();
+            y.domain(d3.extent(data, function(d) {
+                return d['NH Diff']
+            })).nice();
+            r.domain(d3.extent(data, function(d) { return Math.sqrt(d['IA Result']) })).nice();
+
+            //Add the axes and add labels to the axes
+            graph.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + y(0) + ")")
+                .call(xAxis)
+              .append("text")
+                .attr("class", "label")
+                .attr("x", width)
+                .attr("y", 40)
+                .style("text-anchor", "end")
+                .text("Iowa Polling-Vote Difference");
+            graph.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + x(0) + ",0)")
+                .call(yAxis)
+              .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("class", "label")
+                .attr("y", -40)
+                .attr("x", 0)
+                .style("text-anchor", "end")
+                .text("NH Polling-Vote Difference");
+
+            //Add the circles
+            graph.selectAll(".dot")
+              .data(data)
+              .enter().append("circle")
+              .attr("class", "dot")
+              .attr("r", function(d) { return r(Math.sqrt(d['IA Result'])) })
+              .attr("cx", function(d) { return x(d['IA Diff']) })
+              .attr("cy", function(d){ return y(d['NH Diff']) })
+              .style("fill", "#a034cc")
+              .style("fill-opacity", "0.4")
+
+        })
+    </script>
+</body>

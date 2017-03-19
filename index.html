@@ -1,0 +1,396 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/league.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section>
+                <h2>Introduction to D3</h2>
+                <h4>Matthew Dudak</h4>
+                <h4>Presented to BPR Data Board, 19 March 2017</h4>
+            </section>
+            <section>
+                <h3>What is D3?</h3>
+                <p>d3 is a Javascript library for producing "data driven documents"</p>
+                <p>
+                    Created my Mike Bostock, formerly of the New York Times
+                </p>
+            </section>
+            <section>
+                <h3>Is D3 a charting library?</h3>
+                <p>
+                    No! D3 is a library that can be used to create charts, but it is really a library to bind data to the DOM
+                </p>
+            </section>
+            <section>
+                <h1>Let's get started!</h1>
+                </h4>We are going to make a bubble chart
+            </section>
+            <section>
+                <h3>First, create the base html</h3>
+                <pre>
+                  <code class="hljs">
+&lt;head&gt;
+  <script src="http://d3js.org/d3.v3.min.js"> </script>
+&lt;/head&gt;
+&lt;body&gt;
+  <svg id="graph" align="center"></svg>
+&lt;/body&gt;
+                  </code>
+                </pre>
+            </section>
+            <section>
+              This goes in a <code>&lt;script&gt;</code> tag at the end of the body.
+              <pre>
+                <code>
+var graph = d3.select("#graph");
+var data = [
+  {'x': 10.0, 'y': 30.0, 'r': 10},
+  {'x': 50.0, 'y': 10.0, 'r': 5}
+];
+graph.selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+  .attr("cx", function(d){ return d.x })
+  .attr("cy", function(d){ return d.y })
+  .attr("r", function(d){ return d.r });
+                </code>
+              </pre>
+            </section>
+            <section>
+              <h2>What?</h2>
+            </section>
+            <section>
+              <h2>Let's break it down</h2>
+            </section>
+            <section>
+              The first line just selects the graph element and assigns it to <code>graph</code> so that we can use it later.
+              <pre>
+                <code>
+var graph = d3.select("#graph");
+                </code>
+              </pre>
+            </section>
+            <section>
+              The second line creates some data object.
+              <pre>
+                <code>
+var data = [
+  {'x': 10.0, 'y': 30.0, 'r': 10},
+  {'x': 50.0, 'y': 10.0, 'r': 5}
+];
+                </code>
+              </pre>
+            </section>
+            <section>
+              Okay, here is the interesting part, we start by selecting all <code>circle</code> elements in the SVG.
+              <pre>
+                <code>
+graph.selectAll("circle")
+                </code>
+              </pre>
+            </section>
+            <section>
+              <h4>This is really weird</h4>
+              <p class="fragment">
+                The SVG doesn't have any circles in it.
+              </p>
+              <p class="fragment">
+                "Instead of telling D3 how to do something, tell D3 what you want." - Mike Bostock
+              </p>
+              <p class="fragment">
+                So, we are telling D3 we want there to be circles
+              </p>
+            </section>
+            <section>
+              Once we've told D3 that we want there to be circles, we bind data to the circles
+              <pre>
+                <code>
+graph.selectAll("circle")
+  .data(data)
+                </code>
+              </pre>
+              This is very important, and probably the most important thing that D3 does
+            </section>
+            <section>
+              Now we enter the circles that we want to create and actually add them to the svg.
+              <pre>
+                <code>
+graph.selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+                </code>
+              </pre>
+            </section>
+            <section>
+              Finally, we change the attributes of those circles, based on the data
+              <pre>
+                <code>
+graph.selectAll("circle")
+  .data(data)
+  .enter().append("circle")
+  .attr("cx", function(d){ return d.x })
+  .attr("cy", function(d){ return d.y })
+  .attr("r", function(d){ return d.r });
+                </code>
+              </pre>
+            </section>
+            <section>
+              <p>This is our result:</p>
+              <iframe src="EXAMPLE1/index.html" width="100%" height="100%"></iframe>
+            </section>
+            <section>
+              <h4>An aside:</h4>
+              Something that's key to remember is that SVG coordinates are not the same as they are in a graph. Instead of starting in the lower left, they start in the upper left. Keep this in mind going forward.
+            </section>
+            <section>
+              <p>
+                Okay, but that's kind of boring. Let's make a graph!
+              </p>
+              <p>
+                We want our graph to look like this:
+              </p>
+              <iframe src="EXAMPLE2/index.html" height="100%" width="100%"></iframe>
+            </section>
+            <section>
+                <iframe src="EXAMPLE2/index.html" height="550" width="5000"></iframe>
+            </section>
+            <section>
+              We will use a bit different of a setup here.
+              <pre>
+                <code class="hljs">
+&lt;head&gt;
+<script src="http://d3js.org/d3.v3.min.js"> </script>
+<style>
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+</style>
+&lt;/head&gt;
+&lt;body&gt;
+&lt;/body&gt;
+                </code>
+              </pre>
+              Cut out the pre-created svg element, and add in some style.
+            </section>
+            <section>
+              Now, let's start the Javascript.
+              <pre>
+                <code>
+var margin = {
+    top: 20,
+    right: 10,
+    bottom: 45,
+    left: 40
+};
+var frameWidth = 960;
+    frameHeight = 500;
+var width = frameWidth - margin.left - margin.right,
+    height = frameHeight - margin.top - margin.bottom;
+var graph = d3.select("body").append("svg")
+    .attr("width", frameWidth)
+    .attr("height", frameHeight)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                </code>
+              </pre>
+              All of this is just to set up the graph element. See <a href="https://bl.ocks.org/mbostock/3019563">here</a> for more details.
+            </section>
+            <section>
+              Create x, y, and r linear scales. These will be used to map from the data to the svg coordinates.
+              <pre>
+                <code>
+var x = d3.scale.linear()
+    .range([0, width]);
+var y = d3.scale.linear()
+    .range([height, 0]);
+var r = d3.scale.linear()
+    .range([.05, 30]);
+                </code>
+              </pre>
+            </section>
+            <section>
+              Turn these scales into axes on the graphs (D3 makes the svg path for you)
+              <pre>
+                <code>
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+                </code>
+              </pre>
+            </section>
+            <section>
+              Here's what the data looks like:
+              <pre>
+                <code>
+Name,IA Diff,NH Diff,Party,IA Result
+Santorum-2012,7.60,8.00,Republican,24.6
+Romney-2012,2.50,-0.33,Republican,24.5
+Paul-2012,0.07,1.33,Republican,21.4
+Gingrich-2012,-0.70,-4.67,Republican,13.3
+Perry-2012,-0.03,-1.67,Republican,10.3
+Bachmann-2012,-2.00,-4.57,Republican,5
+Hunstman-2012,-2.07,-3.00,Republican,0.6
+                </code>
+              </pre>
+            </section>
+            <section>
+              Read in the data
+              <pre>
+                <code>
+d3.csv("data.csv", function(error, data) {})
+                </code>
+              </pre>
+              The <code>d3.csv()</code> function is an asynchronous function so we have the use a callback function which is executed when the data is read in.
+            </section>
+            <section>
+              Let's flesh out the function. First, tell it what to do in the case of an error.
+              <pre>
+                <code>
+if (error) throw error;
+                </code>
+              </pre>
+            </section>
+            <section>
+              Include a loop which types all of the relevant columns to numbers.
+              <pre>
+                <code>
+data.forEach(function(d) {
+  d['IA Diff'] = +d['IA Diff'];
+  d['NH Diff'] = +d['NH Diff'];
+  d['IA Result'] = +d['IA Result'];
+})
+                </code>
+              </pre>
+            </section>
+            <section>
+              Now that we have our data read in, we can set the domains of x, y, and r.
+              <pre>
+                <code>
+x.domain(d3.extent(data, function(d) {
+    return d['IA Diff']
+})).nice();
+y.domain(d3.extent(data, function(d) {
+    return d['NH Diff']
+})).nice();
+r.domain(d3.extent(data, function(d) { return Math.sqrt(d['IA Result']) })).nice();
+                </code>
+              </pre>
+              The <code>.nice()</code> at the end just makes it round, and we take the square root for r so that the circles are sized proportionally to the area, not the radius (but the radius is the parameter we control).
+            </section>
+            <section>
+              Now, we add the x-axis onto the svg.
+              <pre>
+                <code>
+graph.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + y(0) + ")")
+    .call(xAxis)
+                </code>
+              </pre>
+              Since some data points in this graph have a negative y value, we set the x-axis to be wherever the y=0 point is (thus the translate transform)
+            </section>
+            <section>
+              We can also continue the x-axis chain from the previous slide and add a text label.
+              <pre>
+                <code>
+.append("text")
+  .attr("class", "label")
+  .attr("x", width)
+  .attr("y", 40)
+  .style("text-anchor", "end")
+  .text("Iowa Polling-Vote Difference");
+                </code>
+              </pre>
+            </section>
+            <section>
+              <pre>
+                <code>
+graph.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + x(0) + ",0)")
+    .call(yAxis)
+  .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("class", "label")
+    .attr("y", -40)
+    .attr("x", 0)
+    .style("text-anchor", "end")
+    .text("NH Polling-Vote Difference");
+                </code>
+              </pre>
+              The main difference here is the <code>.attr("transform", "rotate(-90)")</code> which is there just so that the text is rotated.
+            </section>
+            <section>
+              And finally, we are ready to add all of our points. This works basically the same as making the circles before. We start by adding the selecting all, adding the data, entering and appending.
+              <pre>
+                <code>
+graph.selectAll(".dot")
+  .data(data)
+  .enter().append("circle")
+  .attr("class", "dot")
+                </code>
+              </pre>
+            </section>
+            <section>
+              These lines set the radius and position. Instead of using the numbers from the data directly like we did before, we now use the x, y, and r scales.
+              <pre>
+                <code>
+.attr("r", function(d) { return r(Math.sqrt(d['IA Result'])) })
+.attr("cx", function(d) { return x(d['IA Diff']) })
+.attr("cy", function(d){ return y(d['NH Diff']) })
+                </code>
+              </pre>
+            </section>
+            <section>
+              And finally we add some styling.
+              <pre>
+                <code>
+.style("fill", "#a034cc")
+.style("fill-opacity", "0.4")
+                </code>
+              </pre>
+            </section>
+            <section>
+              That's it!
+              <iframe src="EXAMPLE2/index.html" height="550" width="5000"></iframe>
+            </section>
+            <section>
+              Check out the code here:
+
+            </section>
+        </div>
+    </div>
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+            transition: 'fade', // none/fade/slide/convex/concave/zoom
+            // Optional reveal.js plugins
+            dependencies: [{
+                    src: 'plugin/highlight/highlight.js',
+                    async: true,
+                    callback: function() {
+                        hljs.initHighlightingOnLoad();
+                    }
+                }]
+        });
+    </script>
+</body>
+
+</html>
